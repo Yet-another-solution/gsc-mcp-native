@@ -67,6 +67,26 @@ var userAuth = new GoogleAuth(http, new GoogleCredentials(RefreshToken: "r", Cli
 await userAuth.GetAccessTokenAsync();
 Check(fake.TokenForm["grant_type"] == "refresh_token" && fake.TokenForm["refresh_token"] == "r", "refresh grant");
 
+// Browser login: play the browser by following the redirect, then check the code exchange and the saved file.
+var dir = Directory.CreateTempSubdirectory().FullName;
+File.WriteAllText($"{dir}/client.json", """{"installed":{"client_id":"cid","client_secret":"cs","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token"}}""");
+var login = await GoogleAuth.LoginAsync(http, $"{dir}/client.json", GoogleAuth.ReadOnlyScope, 48085, url =>
+{
+    var q = System.Web.HttpUtility.ParseQueryString(new Uri(url).Query);
+    Check(q["access_type"] == "offline" && q["code_challenge_method"] == "S256" && q["scope"] == GoogleAuth.ReadOnlyScope, "auth url");
+    _ = Task.Run(async () =>
+    {
+        using var browser = new HttpClient();
+        Check((await browser.GetAsync($"{q["redirect_uri"]}?state=forged&code=evil")).StatusCode == HttpStatusCode.BadRequest, "forged state rejected");
+        await browser.GetAsync($"{q["redirect_uri"]}?state={q["state"]}&code=the-code");
+    });
+});
+Check(fake.TokenForm["grant_type"] == "authorization_code" && fake.TokenForm["code"] == "the-code" && fake.TokenForm["redirect_uri"] == "http://127.0.0.1:48085/", "code exchange");
+login.Save($"{dir}/credentials.json");
+await GoogleAuth.FromFile(http, $"{dir}/credentials.json").GetAccessTokenAsync();
+Check(fake.TokenForm["refresh_token"] == "the-refresh" && fake.TokenForm["client_id"] == "cid", "saved credentials work");
+Directory.Delete(dir, true);
+
 Console.WriteLine("ok");
 
 bool Sent(string method, string pathAndQuery) =>
@@ -91,7 +111,7 @@ sealed class FakeGoogle : HttpMessageHandler
         {
             TokenRequests++;
             TokenForm = body!.Split('&').Select(p => p.Split('=')).ToDictionary(p => p[0], p => Uri.UnescapeDataString(p[1]));
-            return Json("""{"access_token":"tok","expires_in":3600,"token_type":"Bearer"}""", HttpStatusCode.OK);
+            return Json("""{"access_token":"tok","expires_in":3600,"token_type":"Bearer","refresh_token":"the-refresh"}""", HttpStatusCode.OK);
         }
         (Last, LastBody) = (request, body);
         return Json(_next.Body, _next.Status);

@@ -8,6 +8,29 @@ using ModelContextProtocol.Server;
 var credentialsPath = Environment.GetEnvironmentVariable("GSC_CREDENTIALS_PATH") ?? "/credentials.json";
 var allowWrite = Environment.GetEnvironmentVariable("GSC_ALLOW_WRITE") is "true" or "1";
 
+var scope = allowWrite ? GoogleAuth.ReadWriteScope : GoogleAuth.ReadOnlyScope;
+
+// gsc-mcp login <client-secrets.json> [credentials.json]: one-off browser sign-in, for when service account keys are not an option.
+if (args is ["login", var clientSecrets, ..])
+{
+    var output = args.Length > 2 ? args[2] : "credentials.json";
+    var port = int.TryParse(Environment.GetEnvironmentVariable("GSC_LOGIN_PORT"), out var p) ? p : 8085;
+    try
+    {
+        using var loginHttp = new HttpClient();
+        var credentials = await GoogleAuth.LoginAsync(loginHttp, clientSecrets, scope, port,
+            url => Console.WriteLine($"Open this URL in your browser and sign in:\n\n{url}\n"));
+        credentials.Save(output);
+        Console.WriteLine($"Saved {output}");
+        return 0;
+    }
+    catch (Exception e) when (e is HttpRequestException or InvalidDataException or InvalidOperationException or IOException or System.Net.HttpListenerException)
+    {
+        Console.Error.WriteLine(e.Message);
+        return 1;
+    }
+}
+
 if (!File.Exists(credentialsPath))
 {
     // stdout is the MCP channel, so diagnostics go to stderr.
@@ -16,8 +39,7 @@ if (!File.Exists(credentialsPath))
 }
 
 var http = new HttpClient();
-var gsc = new GscClient(http, GoogleAuth.FromFile(http, credentialsPath,
-    allowWrite ? GoogleAuth.ReadWriteScope : GoogleAuth.ReadOnlyScope));
+var gsc = new GscClient(http, GoogleAuth.FromFile(http, credentialsPath, scope));
 
 var json = new JsonSerializerOptions(McpJsonUtilities.DefaultOptions);
 json.TypeInfoResolverChain.Add(GscJson.Default);

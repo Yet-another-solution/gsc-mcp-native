@@ -3,9 +3,10 @@
 `gsc-mcp` reads one JSON file, set by `GSC_CREDENTIALS_PATH` (default `/credentials.json`).
 It accepts two shapes and detects which one it got.
 
-## Option 1: service account (recommended)
+## Option 1: service account
 
-Best for containers, since there is no browser step and nothing expires.
+Best for unattended use, since there is no browser step and nothing expires. If key creation fails with
+"Service account key creation is disabled", your organisation blocks keys: use option 2.
 
 1. In [Google Cloud Console](https://console.cloud.google.com/), create or pick a project.
 2. Enable the **Google Search Console API** for it.
@@ -17,22 +18,37 @@ Best for containers, since there is no browser step and nothing expires.
 
 Repeat step 5 for every property the server should see.
 
-## Option 2: OAuth user (refresh token)
+## Option 2: sign in with your own Google account
 
-Any JSON file with these three fields works:
+Use this when your organisation blocks service account keys (the default for Google Cloud
+organisations created since 2024), or when you simply prefer no key file. The server then acts
+as you, and sees the properties you can see.
 
-```json
-{
-  "client_id": "....apps.googleusercontent.com",
-  "client_secret": "...",
-  "refresh_token": "..."
-}
+1. In [Google Cloud Console](https://console.cloud.google.com/), pick a project and enable the
+   **Google Search Console API**.
+2. Under **APIs & Services → OAuth consent screen**, configure the app. With Google Workspace choose
+   the **Internal** user type: no review is needed and sign-ins do not expire. With a personal
+   account choose External and add yourself as a test user; Google then expires the sign-in after 7 days
+   until you publish the app.
+3. Under **Clients** (or **Credentials**), create an OAuth client of type **Desktop app** and download its JSON.
+4. Sign in once. This prints a URL, waits for you to approve access in the browser, and writes `credentials.json`:
+
+```bash
+docker run --rm -p 8085:8085 --user "$(id -u):$(id -g)" -v "$PWD:/out" \
+  gsc-mcp login /out/client_secret.json /out/credentials.json
 ```
 
-The `token.json` that [mcp-gsc](https://github.com/AminForou/mcp-gsc) writes after its browser login has this shape.
-The server does not run a browser login itself, so obtain the refresh token outside the container.
+Sign in as an account that can see the property in Search Console. If the property belongs to a
+different account, have its owner add you under **Settings → Users and permissions** first.
 
-The scope was fixed when the refresh token was issued. If it was issued read-only, the write tools will fail even with `GSC_ALLOW_WRITE=true`.
+Notes:
+
+- Port 8085 must be free. To use another, set `-e GSC_LOGIN_PORT=9000` and publish that port instead.
+- Add `-e GSC_ALLOW_WRITE=true` to the login command if you want the write tools. The scope is fixed
+  at sign-in, so a read-only sign-in cannot write later.
+- Any JSON file with `client_id`, `client_secret` and `refresh_token` works, including the
+  `token.json` written by [mcp-gsc](https://github.com/AminForou/mcp-gsc).
+- To revoke access, remove the app at [myaccount.google.com/permissions](https://myaccount.google.com/permissions).
 
 ## Mounting the file
 

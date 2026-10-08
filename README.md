@@ -22,7 +22,7 @@
   <a href="#highlights">Highlights</a> ·
   <a href="#get-started">Get started</a> ·
   <a href="#ask-your-search-data-anything">Tools</a> ·
-  <a href="#credentials-without-a-browser">Credentials</a> ·
+  <a href="#credentials-your-way">Credentials</a> ·
   <a href="#read-only-until-you-say-otherwise">Safety</a> ·
   <a href="#a-library-you-can-lift-out">Library</a> ·
   <a href="#how-its-built">How it's built</a> ·
@@ -36,9 +36,9 @@
 ```
 
 > [!NOTE]
-> **This is an early release (0.1).** The client is checked against a simulated Google API and the
-> container against Google's real token endpoint. If something behaves differently on your
-> property, please open an issue.
+> **This is an early release (0.1).** The read tools and the browser sign-in are verified against
+> the live Search Console API; the write tools so far only against a simulated one. If something
+> behaves differently on your property, please open an issue.
 
 ---
 
@@ -62,7 +62,7 @@ the only host the server talks to is Google.
 ## Get started
 
 ```bash
-git clone https://github.com/MatejMa2ur/gsc-mcp-native && cd gsc-mcp-native
+git clone https://github.com/Yet-another-solution/gsc-mcp-native && cd gsc-mcp-native
 docker build -t gsc-mcp .
 ```
 
@@ -117,15 +117,17 @@ spends its attention on your question and not on choosing between near-duplicate
 Dates default to the last 28 days of finalized data, so a bare question works without the model
 doing calendar arithmetic. Every argument and a sample response: [docs/tools.md](docs/tools.md).
 
-## Credentials without a browser
+## Credentials, your way
 
 The server reads one JSON file and works out what it was given:
 
-- **A service account key.** The right choice for containers: no login step, nothing to refresh by hand.
-- **An OAuth user file** with `client_id`, `client_secret` and `refresh_token`.
+- **A service account key.** No login step, nothing to refresh by hand.
+- **Your own Google sign-in.** For organisations that block service account keys. One command opens
+  the consent page and writes the file:
 
 ```bash
-docker run -i --rm -v /absolute/path/credentials.json:/credentials.json:ro gsc-mcp
+docker run --rm -p 8085:8085 --user "$(id -u):$(id -g)" -v "$PWD:/out" \
+  gsc-mcp login /out/client_secret.json /out/credentials.json
 ```
 
 When Google refuses a call, its own error text is passed back to the assistant, so "the service
