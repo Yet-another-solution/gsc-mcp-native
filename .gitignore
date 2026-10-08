@@ -1,0 +1,6 @@
+bin/
+obj/
+# never commit Google credentials
+credentials*.json
+token.json
+*.pem
