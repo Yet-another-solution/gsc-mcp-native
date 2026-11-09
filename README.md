@@ -1,35 +1,50 @@
-<p align="center">
-  <img alt="gsc-mcp-native" src="docs/images/logo.svg" width="96">
-</p>
+<a id="readme-top"></a>
 
-<h1 align="center">gsc-mcp-native</h1>
+<div align="center">
+  <a href="https://github.com/Yet-another-solution/gsc-mcp-native">
+    <img src="docs/images/logo.svg" alt="gsc-mcp-native logo" width="96" height="96">
+  </a>
 
-<p align="center">
-  <b>Google Search Console for AI assistants, as a single native binary.</b><br>
-  An MCP server written in C# and compiled with NativeAOT. No runtime, no Python, no Node.<br>
-  Claude Code · Claude Desktop · Cursor · any MCP client
-</p>
+  <h3 align="center">gsc-mcp-native</h3>
 
-<p align="center">
-  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0f766e">
-  <img alt="Written in C#" src="https://img.shields.io/badge/written%20in-C%23%20%C2%B7%20.NET%2010-115e59">
-  <img alt="Compiled with NativeAOT" src="https://img.shields.io/badge/compiled-NativeAOT-0f766e">
-  <img alt="Docker image: 27 MB" src="https://img.shields.io/badge/docker%20image-27%20MB-115e59">
-  <img alt="Read-only by default" src="https://img.shields.io/badge/read--only-by%20default-0f766e">
-</p>
+  <p align="center">Google Search Console for AI assistants, as a single native binary</p>
 
-<p align="center">
-  <a href="#highlights">Highlights</a> ·
-  <a href="#get-started">Get started</a> ·
-  <a href="#ask-your-search-data-anything">Tools</a> ·
-  <a href="#credentials-your-way">Credentials</a> ·
-  <a href="#read-only-until-you-say-otherwise">Safety</a> ·
-  <a href="#a-library-you-can-lift-out">Library</a> ·
-  <a href="#how-its-built">How it's built</a> ·
-  <a href="#whats-next">What's next</a>
-</p>
+[![Last commit](https://img.shields.io/github/last-commit/Yet-another-solution/gsc-mcp-native?style=for-the-badge)](https://github.com/Yet-another-solution/gsc-mcp-native/commits)<br>
+![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white) ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-<br>
+  <p align="center">
+    <a href="#get-started"><strong>Get started</strong></a>
+    &middot;
+    <a href="#ask-your-search-data-anything">Tools</a>
+    &middot;
+    <a href="#read-only-until-you-say-otherwise">Safety</a>
+    &middot;
+    <a href="https://github.com/Yet-another-solution/gsc-mcp-native/issues/new?labels=bug">Report Bug</a>
+    &middot;
+    <a href="https://github.com/Yet-another-solution/gsc-mcp-native/issues/new?labels=enhancement">Request Feature</a>
+  </p>
+</div>
+
+<hr>
+
+<table>
+  <tr>
+    <td nowrap><img src="docs/images/icons/monitor.svg" width="16" height="16" alt="">&nbsp;<strong>Works&nbsp;with</strong></td>
+    <td>Claude Code, Claude Desktop, Cursor and any MCP client</td>
+  </tr>
+  <tr>
+    <td nowrap><img src="docs/images/icons/shield.svg" width="16" height="16" alt="">&nbsp;<strong>Safe</strong></td>
+    <td>Read-only until you allow writes</td>
+  </tr>
+  <tr>
+    <td nowrap><img src="docs/images/icons/terminal.svg" width="16" height="16" alt="">&nbsp;<strong>Install</strong></td>
+    <td>One <code>claude mcp add</code> line, see <a href="#get-started">Get started</a></td>
+  </tr>
+  <tr>
+    <td nowrap><img src="docs/images/icons/progress.svg" width="16" height="16" alt="">&nbsp;<strong>Status</strong></td>
+    <td>Early release (0.1), MIT licensed<img align="right" src="docs/images/icons/spacer.svg" width="2000" height="1" alt=""></td>
+  </tr>
+</table>
 
 ```
   you  ──►  Claude / any MCP client  ──stdio──►  gsc-mcp  ──HTTPS──►  Search Console API
